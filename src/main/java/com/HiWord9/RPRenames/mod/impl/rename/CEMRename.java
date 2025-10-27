@@ -1,6 +1,7 @@
 package com.HiWord9.RPRenames.mod.impl.rename;
 
 import com.HiWord9.RPRenames.api.rename.Rename;
+import com.HiWord9.RPRenames.mod.RPRenames;
 import com.HiWord9.RPRenames.mod.impl.rename.renderer.builder.CEMRenameRendererBuilder;
 import com.HiWord9.RPRenames.api.rename.renderer.builder.RenameRendererBuilder;
 import com.HiWord9.RPRenames.mod.util.PropertiesHelper;
@@ -14,7 +15,9 @@ import net.minecraft.item.Items;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
+import net.minecraft.storage.NbtReadView;
 import net.minecraft.text.Text;
+import net.minecraft.util.ErrorReporter;
 
 import java.util.Objects;
 import java.util.Properties;
@@ -104,9 +107,11 @@ public class CEMRename extends ResourcePackRename implements HasProperties, HasN
             if (entityData != null) {
                 var nbt = entityData.copyNbt();
 
-                var entityCustomName = nbt.get("CustomName");
-                if (entityCustomName != null) {
-                    name = BlockEntity.tryParseCustomName(entityCustomName, registries);
+                try (var logging = new ErrorReporter.Logging(ErrorReporter.Logging.CONTEXT, RPRenames.LOGGER)) {
+
+                    var readView = NbtReadView.create(logging, registries, nbt);
+                    Text parsed = BlockEntity.tryParseCustomName(readView, "CustomName");
+                    if (parsed != null) name = parsed;
                 }
             }
 

@@ -3,10 +3,10 @@ package com.HiWord9.RPRenames.mod.gui.widget.external;
 import com.HiWord9.RPRenames.mod.RPRenames;
 import com.HiWord9.RPRenames.mod.gui.widget.OffsetableWidget;
 import com.HiWord9.RPRenames.mod.gui.widget.RPRWidget;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.Items;
 import net.minecraft.util.Identifier;
 
@@ -42,7 +42,7 @@ public class FavoriteButton extends ClickableWidget implements OffsetableWidget 
         int u = 0;
         int v = favorite ? 0 : V_OFFSET;
         context.drawTexture(
-                RenderLayer::getGuiTextured,
+                RenderPipelines.GUI_TEXTURED,
                 TEXTURE,
                 getX(), getY(),
                 u, v,

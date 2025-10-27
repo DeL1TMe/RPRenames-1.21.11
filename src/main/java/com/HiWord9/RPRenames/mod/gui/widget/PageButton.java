@@ -1,6 +1,7 @@
 package com.HiWord9.RPRenames.mod.gui.widget;
 
 import com.HiWord9.RPRenames.mod.RPRenames;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -39,7 +40,7 @@ public class PageButton extends ClickableWidget implements OffsetableWidget {
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         int u = type == Type.DOWN ? 0 : UP_OFFSET_U;
         int v = !active ? DISABLED_OFFSET_V : hovered ? FOCUSED_OFFSET_V : 0;
-        context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, getX(), getY(), u, v, getWidth(), getHeight(), TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, getX(), getY(), u, v, getWidth(), getHeight(), TEXTURE_WIDTH, TEXTURE_HEIGHT);
         if (!config().disablePageArrowsHints && hasShiftDown() && active && hovered) {
             String key = "rprenames.gui.page" + (type == Type.DOWN ? "Down.toFirst" : "Up.toLast") + ".tooltip";
             context.drawTooltip(textRenderer(), Text.translatable(key).formatted(Formatting.GRAY), mouseX, mouseY);

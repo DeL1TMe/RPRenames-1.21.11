@@ -1,17 +1,17 @@
 package com.HiWord9.RPRenames.mod.gui.widget;
 
-import com.HiWord9.RPRenames.mod.RPRenames;
-import com.HiWord9.RPRenames.mod.gui.RPRInteractableScreen;
-import com.HiWord9.RPRenames.mod.gui.Graphics;
+import com.HiWord9.RPRenames.api.rename.Rename;
 import com.HiWord9.RPRenames.api.rename.renderer.RenameRenderer;
+import com.HiWord9.RPRenames.mod.RPRenames;
+import com.HiWord9.RPRenames.mod.gui.Graphics;
+import com.HiWord9.RPRenames.mod.gui.RPRInteractableScreen;
 import com.HiWord9.RPRenames.mod.impl.rename.renderer.builder.AcceptsFavoriteSupplier;
 import com.HiWord9.RPRenames.mod.impl.rename.renderer.builder.AcceptsRPRWidget;
-import com.HiWord9.RPRenames.api.rename.Rename;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.Item;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
@@ -64,7 +64,7 @@ public class RenameButton extends ClickableWidget implements OffsetableWidget {
         int u = favorite ? FAVORITE_OFFSET_U : 0;
         int v = hovered || (selected && config().highlightSelected) ? FOCUSED_OFFSET_V : 0;
         context.drawTexture(
-                RenderLayer::getGuiTextured,
+                RenderPipelines.GUI_TEXTURED,
                 TEXTURE,
                 getX(), getY(),
                 u, v,

@@ -2,11 +2,11 @@ package com.HiWord9.RPRenames.mod.gui.widget;
 
 import com.HiWord9.RPRenames.mod.RPRenames;
 import com.HiWord9.RPRenames.mod.gui.Graphics;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.tooltip.HoveredTooltipPositioner;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -43,7 +43,7 @@ public class TabButton extends ClickableWidget implements OffsetableWidget {
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         int u = rprWidget.getCurrentTab() == tab ? SELECTED_OFFSET_U : 0;
         int v = index * TYPE_OFFSET_V;
-        context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, getX(), getY(), u, v, getWidth(), getHeight(), TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, getX(), getY(), u, v, getWidth(), getHeight(), TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
         if (isMouseOver(mouseX, mouseY)) {
             Graphics.drawTooltip(

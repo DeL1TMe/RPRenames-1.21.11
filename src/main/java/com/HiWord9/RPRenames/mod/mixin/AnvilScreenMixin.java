@@ -17,6 +17,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
+import org.joml.Matrix3x2fStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -224,16 +225,16 @@ public abstract class AnvilScreenMixin extends Screen implements RPRInteractable
         int xScreenOffset = ((AnvilScreen) client.currentScreen).x;
         int yScreenOffset = ((AnvilScreen) client.currentScreen).y;
 
-        MatrixStack matrices = context.getMatrices();
-        matrices.push();
-        matrices.translate(-xScreenOffset, -yScreenOffset, 0);
+        Matrix3x2fStack matrices = context.getMatrices();
+        matrices.pushMatrix();
+        matrices.translate(-xScreenOffset, -yScreenOffset);
 
         opener.render(context, mouseX, mouseY, 0);
         favoriteButton.render(context, mouseX, mouseY, 0);
         ghostCraft.render(context, mouseX, mouseY, 0);
         rprWidget.render(context, mouseX, mouseY, 0);
 
-        matrices.pop();
+        matrices.popMatrix();
     }
 
     @Override
