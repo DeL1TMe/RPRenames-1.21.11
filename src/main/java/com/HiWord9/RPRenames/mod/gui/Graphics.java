@@ -194,7 +194,7 @@ public class Graphics {
             boolean favorite
     ) {
         renderTooltipAsFavorite = favorite;
-        context.drawTooltipImmediately(textRenderer, components, x, y, positioner, null);
+        context.drawTooltip(textRenderer, components, x, y, positioner, null, false);
         renderTooltipAsFavorite = false;
     }
 
