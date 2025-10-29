@@ -9,10 +9,8 @@ import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
 import net.minecraft.client.gui.tooltip.TooltipPositioner;
-import net.minecraft.client.render.DiffuseLighting;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.client.render.entity.state.EntityRenderState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -24,11 +22,9 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.joml.Matrix3x2f;
-import org.joml.Matrix3x2fStack;
-import org.joml.Matrix4f;
-import org.joml.Quaternionf;
+import org.joml.*;
 
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,35 +81,21 @@ public class Graphics {
                 rect.getLeft(), rect.getTop(),
                 rect.getRight(), rect.getBottom()
         );
-        int x = rect.getLeft() + rect.width() / 2;
-        int y = (int) (rect.getTop() + (rect.height() + size * entity.getHeight()) / 2);
-        renderEntity(context, x, y, z, size, entity, spin);
+        renderEntity(context, rect.getLeft(), rect.getTop(),
+                rect.getRight(), rect.getBottom(),
+                size, entity, spin);
         context.disableScissor();
     }
 
-    public static void renderEntity(DrawContext context, int x, int y, int z, double size, Entity entity, boolean spin) {
-//        DiffuseLighting.disableGuiDepthLighting();
-        Matrix3x2fStack guiMatrices = context.getMatrices();
-
-        MatrixStack matrices = new MatrixStack();
-        matrices.push();
-
-        Matrix3x2f current = new Matrix3x2f(guiMatrices);
-        matrices.translate(current.m20(), current.m21(), 0);
-
+    public static void renderEntity(DrawContext context, int x1, int y1, int x2, int y2, double size, Entity entity, boolean spin) {
         if (entity instanceof SquidEntity) size /= 1.5;
         else if (entity instanceof ItemEntity) size *= 2;
 
         if (entity instanceof LivingEntity l && l.isBaby()) size /= 1.7;
 
-        matrices.translate(x, y, 1000 + z);
-        matrices.scale(1f, 1f, -1);
-        matrices.translate(0, 0, 1000);
-        matrices.scale((float) size, (float) size, (float) size);
-        Quaternionf rotationZ = new Quaternionf().rotateZ((float) Math.PI);
-        Quaternionf rotationX = new Quaternionf().rotateX(-10f * (float)Math.PI / 180f);
-        rotationZ.mul(rotationX);
-        matrices.multiply(rotationZ);
+        Quaternionf entityRotation = new Quaternionf().rotateZ((float) Math.PI);
+        Quaternionf pitchRotation = new Quaternionf().rotateX(-10.f * 0.017453292F);
+        entityRotation.mul(pitchRotation);
 
         var camera = client().cameraEntity;
         if (camera != null) {
@@ -126,18 +108,12 @@ public class Graphics {
         }
         setupAngles(entity, spin);
 
+        Vector3f vector3f = new Vector3f(0.0F, entity.getHeight() / 2.0F, 0.0F);
         var entityRenderDispatcher = client().getEntityRenderDispatcher();
-        rotationX.conjugate();
-        entityRenderDispatcher.setRotation(rotationX);
-        entityRenderDispatcher.setRenderShadows(false);
-        var immediate = client().getBufferBuilders().getEntityVertexConsumers();
-
-        entityRenderDispatcher.render(entity, 0, 0, 0, 1f, matrices, immediate,
-                LightmapTextureManager.MAX_LIGHT_COORDINATE);
-        immediate.draw();
-        entityRenderDispatcher.setRenderShadows(true);
-        matrices.pop();
-//        DiffuseLighting.enableGuiDepthLighting();
+        EntityRenderer<? super Entity, ?> entityRenderer = entityRenderDispatcher.getRenderer(entity);
+        EntityRenderState entityRenderState = entityRenderer.getAndUpdateRenderState(entity, 1.0F);
+        entityRenderState.hitbox = null;
+        context.addEntity(entityRenderState, (float) size, vector3f, entityRotation, pitchRotation, x1, y1, x2, y2);
     }
 
     private static void setupAngles(Entity entity, boolean spin) {

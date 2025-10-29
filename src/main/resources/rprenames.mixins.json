@@ -8,7 +8,8 @@
     "CreativeInventoryScreenMixin",
     "MinecraftClientMixin",
     "TooltipBackgroundRendererMixin",
-    "BakedModelManagerMixin"
+    "BakedModelManagerMixin",
+    "DrawContextMixin"
   ],
   "injectors": {
     "defaultRequire": 1

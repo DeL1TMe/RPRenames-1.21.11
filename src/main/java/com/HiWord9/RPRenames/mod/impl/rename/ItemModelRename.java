@@ -1,6 +1,8 @@
 package com.HiWord9.RPRenames.mod.impl.rename;
 
 import com.HiWord9.RPRenames.api.rename.Rename;
+import com.HiWord9.RPRenames.api.rename.renderer.builder.RenameRendererBuilder;
+import com.HiWord9.RPRenames.mod.impl.rename.renderer.ItemModelRenameRendererBuilder;
 import com.HiWord9.RPRenames.mod.impl.renames_manager.updatable.parser.item_model.condition.ItemModelCondition;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -31,5 +33,9 @@ public class ItemModelRename extends Rename {
         return super.equals(obj)
                 && obj instanceof ItemModelRename i
                 && Objects.deepEquals(conditions, i.conditions);
+    }
+
+    public RenameRendererBuilder<ItemModelRename> getNewRendererBuilder() {
+        return new ItemModelRenameRendererBuilder(this);
     }
 }
