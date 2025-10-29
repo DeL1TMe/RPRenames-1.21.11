@@ -5,7 +5,10 @@ import com.HiWord9.RPRenames.mod.gui.Graphics;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.tooltip.HoveredTooltipPositioner;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +43,8 @@ public class SimpleRenameRenderer<T extends Rename> implements RenameRenderer {
 
     @Override
     public void onRenderTooltip(DrawContext context, int mouseX, int mouseY, int buttonX, int buttonY, int buttonWidth, int buttonHeight) {
+        updateRenameIndex();
+
         Graphics.drawTooltip(
                 context,
                 textRenderer(),
@@ -47,5 +52,35 @@ public class SimpleRenameRenderer<T extends Rename> implements RenameRenderer {
                 mouseX, mouseY,
                 HoveredTooltipPositioner.INSTANCE
         );
+    }
+
+    private boolean nPressFuse = false;
+
+    protected void updateRenameIndex() {
+        List<Text> texts = rename.getNames();
+        if (texts.isEmpty()) return;
+
+        int current = rename.getCurrentIndex();
+
+        if (isNKeyJustPressed()) {
+            current = (current + 1) % texts.size();
+            rename.setCurrentIndex(current);
+        }
+
+        if (!tooltipComponents.isEmpty()) {
+            tooltipComponents.set(0, Graphics.tooltipOf(rename.getName()));
+        }
+    }
+
+    private boolean isNKeyJustPressed() {
+        if (InputUtil.isKeyPressed(client().getWindow().getHandle(), GLFW.GLFW_KEY_N)) {
+            if (!nPressFuse) {
+                nPressFuse = true;
+                return true;
+            }
+        } else {
+            nPressFuse = false;
+        }
+        return false;
     }
 }

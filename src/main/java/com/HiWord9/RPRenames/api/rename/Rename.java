@@ -12,16 +12,34 @@ import java.util.List;
 import java.util.Objects;
 
 public class Rename {
-    protected final Text name;
+    protected final List<Text> name;
     protected final List<Item> items = new ArrayList<>();
+    private Integer currentIndex = 0;
 
     public Rename(Text name, Item... items) {
+        this.name = List.of(name);
+        for (Item item : items) if (item != null) this.items.add(item);
+    }
+
+    public Rename(List<Text> name, Item... items) {
         this.name = name;
         for (Item item : items) if (item != null) this.items.add(item);
     }
 
     public Text getName() {
+        return name.get(currentIndex);
+    }
+
+    public List<Text> getNames() {
         return name;
+    }
+
+    public void setCurrentIndex(Integer currentIndex) {
+        this.currentIndex = currentIndex;
+    }
+
+    public Integer getCurrentIndex() {
+        return currentIndex;
     }
 
     public List<Item> getItems() {
@@ -38,7 +56,7 @@ public class Rename {
 
     public ItemStack toStack(int index) {
         ItemStack stack = new ItemStack(items.get(index));
-        stack.set(DataComponentTypes.CUSTOM_NAME, Text.of(name));
+        stack.set(DataComponentTypes.CUSTOM_NAME, Text.of(name.get(currentIndex)));
         return stack;
     }
 

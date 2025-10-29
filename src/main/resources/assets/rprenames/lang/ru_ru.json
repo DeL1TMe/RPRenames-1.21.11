@@ -14,6 +14,7 @@
   "rprenames.gui.tooltipHint.playerPreview.pressF": "Нажмите [%1$s] для переключения между слотами",
   "rprenames.gui.tooltipHint.favorite.add": "Нажмите [%1$s] для добавления в избранное",
   "rprenames.gui.tooltipHint.favorite.remove": "Нажмите [%1$s] для удаления из избранного",
+  "rprenames.gui.tooltipHint.nextHint.pressN": "Нажмите [%1$s] для переключения между именами",
   "rprenames.gui.tooltipHint.disable": "Скрыть подсказки: %1$s",
   "rprenames.gui.tooltipHint.disable.command": "/rprenames disableHints",
   "rprenames.gui.tooltipHint.stackSize": "Размер стопки:",
@@ -21,6 +22,7 @@
   "rprenames.gui.tooltipHint.enchantment": "Зачарование:",
   "rprenames.key.shift": "Shift",
   "rprenames.key.f": "F",
+  "rprenames.key.n": "N",
   "rprenames.key.rmb": "ПКМ",
 
   "rprenames.command.disableHints.disabled": "Подсказки больше не будут вас беспокоить",

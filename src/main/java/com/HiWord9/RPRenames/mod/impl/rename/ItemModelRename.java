@@ -14,7 +14,7 @@ import java.util.Objects;
 public class ItemModelRename extends Rename {
     protected final List<ItemModelCondition.Applicable> conditions;
 
-    public ItemModelRename(List<ItemModelCondition.Applicable> conditions, Text name, Item... items) {
+    public ItemModelRename(List<ItemModelCondition.Applicable> conditions, List<Text> name, Item... items) {
         super(name, items);
         this.conditions = conditions;
     }

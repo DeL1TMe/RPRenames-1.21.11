@@ -48,6 +48,11 @@ public class ItemModelRenameRenderer extends SimpleRenameRenderer<ItemModelRenam
             Text.translatable("rprenames.key.rmb").formatted(Formatting.GRAY)
     ).formatted(Formatting.DARK_GRAY);
 
+    private static final MutableText nextHintN = Text.translatable(
+            "rprenames.gui.tooltipHint.nextHint.pressN",
+            Text.translatable("rprenames.key.n").formatted(Formatting.GRAY)
+    ).formatted(Formatting.DARK_GRAY);
+
     private static final MutableText disableHint = Text.translatable(
             "rprenames.gui.tooltipHint.disable",
             Text.translatable("rprenames.gui.tooltipHint.disable.command").formatted(Formatting.RED)
@@ -119,10 +124,13 @@ public class ItemModelRenameRenderer extends SimpleRenameRenderer<ItemModelRenam
 
         if (!config().disableTooltipHints) {
             tooltipAddition.add(tooltipOf(favoriteSupplier.get() ? favoriteHintRemove : favoriteHintAdd));
+            tooltipAddition.add(tooltipOf(nextHintN));
             tooltipAddition.add(tooltipOf(disableHint));
         }
 
         tooltipComponents.addAll(tooltipAddition);
+
+        updateRenameIndex();
 
         List<TooltipComponent> snapshot = new ArrayList<>(tooltipComponents);
         Graphics.drawTooltip(

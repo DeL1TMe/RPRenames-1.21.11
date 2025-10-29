@@ -50,10 +50,10 @@ public class ItemModelParser implements Parser {
         });
     }
 
-    private static Text getName(Collection<ItemModelCondition.Applicable> conditions) {
+    private static List<Text> getName(Collection<ItemModelCondition.Applicable> conditions) {
         var renameCondition = getRenameCondition(conditions);
         if (renameCondition == null) return null;
-        return renameCondition.value.getFirst();
+        return renameCondition.value;
     }
 
     private static @Nullable SelectCondition<ComponentSelectProperty<Text>, Text> getRenameCondition(

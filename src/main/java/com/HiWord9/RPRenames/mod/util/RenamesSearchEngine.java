@@ -6,6 +6,7 @@ import com.HiWord9.RPRenames.mod.impl.rename.CITRename;
 import com.HiWord9.RPRenames.api.rename.Rename;
 import com.HiWord9.RPRenames.mod.impl.rename.ResourcePackRename;
 import net.minecraft.item.Item;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -52,8 +53,11 @@ public class RenamesSearchEngine {
                 match = match.substring(1);
             }
             for (Rename r : list) {
-                if (up(r.getName().getString()).contains(up(match))) {
-                    resultList.add(r);
+                for(Text name : r.getNames()) {
+                    if (up(name.getString()).contains(up(match))) {
+                        if(resultList.contains(r)) continue;
+                        resultList.add(r);
+                    }
                 }
             }
         }
