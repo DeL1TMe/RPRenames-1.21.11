@@ -73,7 +73,7 @@ public class SimpleRenameRenderer<T extends Rename> implements RenameRenderer {
     }
 
     private boolean isNKeyJustPressed() {
-        if (InputUtil.isKeyPressed(client().getWindow().getHandle(), GLFW.GLFW_KEY_N)) {
+        if (InputUtil.isKeyPressed(client().getWindow(), GLFW.GLFW_KEY_N)) {
             if (!nPressFuse) {
                 nPressFuse = true;
                 return true;

@@ -20,5 +20,7 @@ public class BakedModelManagerMixin {
     ) {
         var itemAssets = itemAssetsLoaderResult.join().contents();
         RPRenames.itemModelParser.updateItemAssets(itemAssets);
+        // Ensure item-model renames are parsed after item assets are available.
+        RPRenames.renamesManager.updateRenames();
     }
 }

@@ -52,10 +52,10 @@ public class UpdatableRenamesManager extends RenamesManagerImpl<Rename> implemen
     }
 
     @Override
-    public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
+    public CompletableFuture<Void> reload(ResourceReloader.Store store, Executor prepareExecutor, ResourceReloader.Synchronizer reloadSynchronizer, Executor applyExecutor) {
         return CompletableFuture.supplyAsync(() -> {
-            if (config().updateConfig) updateRenames(manager, Profilers.get());
+            if (config().updateConfig) updateRenames(store.getResourceManager(), Profilers.get());
             return null;
-        }, prepareExecutor).thenCompose(synchronizer::whenPrepared).thenAcceptAsync(o -> {}, applyExecutor);
+        }, prepareExecutor).thenCompose(reloadSynchronizer::whenPrepared).thenAcceptAsync(o -> {}, applyExecutor);
     }
 }

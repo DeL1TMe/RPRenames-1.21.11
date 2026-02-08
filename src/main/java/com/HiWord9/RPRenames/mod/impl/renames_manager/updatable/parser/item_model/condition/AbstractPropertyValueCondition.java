@@ -4,7 +4,7 @@ import java.util.Objects;
 
 public sealed abstract class AbstractPropertyValueCondition<P, V>
         implements ItemModelCondition
-        permits BooleanCondition, NumericCondition, SelectCondition
+        permits BooleanCondition, NumericCondition, SelectCondition, CustomNameCondition
 {
     public final P property;
     public final V value;

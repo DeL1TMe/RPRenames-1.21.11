@@ -6,10 +6,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
@@ -68,6 +70,12 @@ public class Util {
     public static int randomNumber() {
         assert player() != null;
         return player().getRandom().nextBetween(0, Integer.MAX_VALUE - 1);
+    }
+
+    public static boolean isShiftDown() {
+        var window = client().getWindow();
+        return InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT)
+                || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
     }
 
     public static <T> List<T> setAndNullMissing(List<T> values, int index, T value, T filler) {

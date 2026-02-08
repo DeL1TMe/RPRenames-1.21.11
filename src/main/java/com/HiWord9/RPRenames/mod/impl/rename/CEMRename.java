@@ -7,8 +7,8 @@ import com.HiWord9.RPRenames.api.rename.renderer.builder.RenameRendererBuilder;
 import com.HiWord9.RPRenames.mod.util.PropertiesHelper;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.TypedEntityData;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -89,7 +89,7 @@ public class CEMRename extends ResourcePackRename implements HasProperties, HasN
         if (spawnEggItem == null) {
             NbtCompound nbtName = new NbtCompound();
             nbtName.putString("id", Registries.ENTITY_TYPE.getId(this.getEntity()).toString());
-            NbtComponent.set(DataComponentTypes.ENTITY_DATA, stack, nbtName);
+            stack.set(DataComponentTypes.ENTITY_DATA, TypedEntityData.create(this.getEntity(), nbtName));
         }
         return stack;
     }
@@ -100,12 +100,12 @@ public class CEMRename extends ResourcePackRename implements HasProperties, HasN
         if (stack.getItem() instanceof SpawnEggItem spawnEggItem && client().world != null) {
             var registries = client().world.getRegistryManager();
 
-            var entityType = spawnEggItem.getEntityType(registries, stack);
+            var entityType = spawnEggItem.getEntityType(stack);
             var name = stack.getCustomName();
 
             var entityData = stack.get(DataComponentTypes.ENTITY_DATA);
             if (entityData != null) {
-                var nbt = entityData.copyNbt();
+                var nbt = entityData.copyNbtWithoutId();
 
                 try (var logging = new ErrorReporter.Logging(ErrorReporter.Logging.CONTEXT, RPRenames.LOGGER)) {
 

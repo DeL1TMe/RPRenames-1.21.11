@@ -3,6 +3,7 @@ package com.HiWord9.RPRenames.mod.gui.widget;
 import com.HiWord9.RPRenames.mod.RPRenames;
 import com.HiWord9.RPRenames.mod.gui.Graphics;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.tooltip.HoveredTooltipPositioner;
@@ -57,12 +58,12 @@ public class TabButton extends ClickableWidget implements OffsetableWidget {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.isMouseOver(mouseX, mouseY)) {
+    public boolean mouseClicked(Click click, boolean doubled) {
+        if (this.isMouseOver(click.x(), click.y())) {
             if (rprWidget.getCurrentTab() != tab) rprWidget.openTab(tab);
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(click, doubled);
     }
 
     @Override

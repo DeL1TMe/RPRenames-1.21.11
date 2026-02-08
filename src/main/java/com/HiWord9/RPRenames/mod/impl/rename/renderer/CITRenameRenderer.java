@@ -28,7 +28,6 @@ import java.util.function.Supplier;
 import static com.HiWord9.RPRenames.mod.gui.Graphics.tooltipOf;
 import static com.HiWord9.RPRenames.mod.util.RenameRendererHelper.*;
 import static com.HiWord9.RPRenames.mod.util.Util.*;
-import static net.minecraft.client.gui.screen.Screen.hasShiftDown;
 
 public class CITRenameRenderer extends SimpleRenameRenderer<CITRename> implements RenameRenderer.Preview {
     private static final MutableText playerPreviewHintShift = Text.translatable(
@@ -219,7 +218,7 @@ public class CITRenameRenderer extends SimpleRenameRenderer<CITRename> implement
         ArrayList<TooltipComponent> tooltipAddition = new ArrayList<>();
 
         if (config().enablePreview) {
-            boolean shiftDown = hasShiftDown();
+            boolean shiftDown = isShiftDown();
 
             if (!shiftDown && !config().playerPreviewByDefault) {
                 if (!config().disableTooltipHints) tooltipAddition.add(tooltipOf(playerPreviewHintShift));
@@ -254,7 +253,7 @@ public class CITRenameRenderer extends SimpleRenameRenderer<CITRename> implement
 
     @Override
     public void drawPreview(DrawContext context, int mouseX, int mouseY, List<TooltipComponent> mainTooltip) {
-        boolean shouldPreviewPlayer = hasShiftDown() != config().playerPreviewByDefault;
+        boolean shouldPreviewPlayer = isShiftDown() != config().playerPreviewByDefault;
         TooltipPositioner positioner = new PreviewTooltipPositioner(mainTooltip);
 
         if (shouldPreviewPlayer) {
@@ -293,7 +292,7 @@ public class CITRenameRenderer extends SimpleRenameRenderer<CITRename> implement
     private boolean fPressFuse = false;
 
     private boolean isFKeyJustPressed() {
-        if (InputUtil.isKeyPressed(client().getWindow().getHandle(), GLFW.GLFW_KEY_F)) {
+        if (InputUtil.isKeyPressed(client().getWindow(), GLFW.GLFW_KEY_F)) {
             if (!fPressFuse) {
                 fPressFuse = true;
                 return true;

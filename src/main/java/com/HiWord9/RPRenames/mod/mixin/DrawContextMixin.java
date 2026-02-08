@@ -42,7 +42,7 @@ public abstract class DrawContextMixin {
         }
     }
 
-    @Inject(method = "renderTooltip", at = @At("TAIL"))
+    @Inject(method = "drawDeferredElements", at = @At("TAIL"))
     private void afterRenderTooltip(CallbackInfo ci) {
         if (!extraTooltipDrawers.isEmpty()) {
             DrawContext ctx = (DrawContext)(Object)this;

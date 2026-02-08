@@ -97,7 +97,7 @@ public class Graphics {
         Quaternionf pitchRotation = new Quaternionf().rotateX(-10.f * 0.017453292F);
         entityRotation.mul(pitchRotation);
 
-        var camera = client().cameraEntity;
+        var camera = client().getCameraEntity();
         if (camera != null) {
             entity.setPos(camera.getX(), camera.getY(), camera.getZ());
         }
@@ -112,7 +112,6 @@ public class Graphics {
         var entityRenderDispatcher = client().getEntityRenderDispatcher();
         EntityRenderer<? super Entity, ?> entityRenderer = entityRenderDispatcher.getRenderer(entity);
         EntityRenderState entityRenderState = entityRenderer.getAndUpdateRenderState(entity, 1.0F);
-        entityRenderState.hitbox = null;
         context.addEntity(entityRenderState, (float) size, vector3f, entityRotation, pitchRotation, x1, y1, x2, y2);
     }
 

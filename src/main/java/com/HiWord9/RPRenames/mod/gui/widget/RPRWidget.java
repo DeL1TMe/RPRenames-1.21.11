@@ -11,12 +11,14 @@ import com.HiWord9.RPRenames.mod.util.RenamesSearchEngine;
 import com.HiWord9.RPRenames.api.rename.Rename;
 import com.HiWord9.RPRenames.mod.impl.rename.CITRename;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -33,8 +35,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.HiWord9.RPRenames.mod.util.Util.*;
-import static net.minecraft.client.gui.screen.Screen.hasShiftDown;
-
 public class RPRWidget implements Drawable, Element, OffsetableWidget {
     protected static Identifier MENU_TEXTURE = Identifier.of(RPRenames.MOD_ID, "textures/gui/menu.png");
 
@@ -225,11 +225,11 @@ public class RPRWidget implements Drawable, Element, OffsetableWidget {
     }
 
     public void prevPage() {
-        openPage(hasShiftDown() ? 0 : page - 1);
+        openPage(isShiftDown() ? 0 : page - 1);
     }
 
     public void nextPage() {
-        openPage(hasShiftDown() ? -1 : page + 1);
+        openPage(isShiftDown() ? -1 : page + 1);
     }
 
 // Execution
@@ -395,11 +395,14 @@ public class RPRWidget implements Drawable, Element, OffsetableWidget {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(Click click, boolean doubled) {
         if (!open) return false;
 
+        double mouseX = click.x();
+        double mouseY = click.y();
+
         for (Element widget : widgets) {
-            if (widget.mouseClicked(mouseX, mouseY, button)) {
+            if (widget.mouseClicked(click, doubled)) {
                 if (widget == searchField && currentScreen() != null) {
                     currentScreen().setFocused(searchField);
                 }
@@ -413,16 +416,16 @@ public class RPRWidget implements Drawable, Element, OffsetableWidget {
             }
         }
         for (RenameButton renameButton : buttons) {
-            if (renameButton.mouseClicked(mouseX, mouseY, button)) return true;
+            if (renameButton.mouseClicked(click, doubled)) return true;
         }
 
         return false;
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyInput input) {
         for (Element widget : widgets) {
-            if (widget.keyPressed(keyCode, scanCode, modifiers)) return true;
+            if (widget.keyPressed(input)) return true;
         }
         return false;
     }

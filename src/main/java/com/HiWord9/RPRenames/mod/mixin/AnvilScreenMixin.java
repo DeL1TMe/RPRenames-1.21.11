@@ -9,10 +9,12 @@ import com.HiWord9.RPRenames.mod.gui.widget.RPRWidget;
 import com.HiWord9.RPRenames.mod.gui.widget.external.FavoriteButton;
 import com.HiWord9.RPRenames.mod.gui.widget.external.OpenerButton;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.AnvilScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
@@ -93,17 +95,17 @@ public abstract class AnvilScreenMixin extends Screen implements RPRInteractable
         rprWidget.updatedName();
     }
 
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/AnvilScreen;init(Lnet/minecraft/client/MinecraftClient;II)V"), method = "resize")
-    private void onResize(AnvilScreen instance, MinecraftClient client, int width, int height) {
+    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/AnvilScreen;init(II)V"), method = "resize")
+    private void onResize(AnvilScreen instance, int width, int height) {
         if (shouldNotModify()) {
-            instance.init(client, width, height);
+            instance.init(width, height);
             return;
         }
 
         int prevX = instance.x;
         int prevY = instance.y;
 
-        instance.init(client, width, height);
+        instance.init(width, height);
 
         offsetWidgets(instance.x - prevX, instance.y - prevY);
         
@@ -111,29 +113,29 @@ public abstract class AnvilScreenMixin extends Screen implements RPRInteractable
     }
 
     @Inject(at = @At(value = "HEAD"), method = "keyPressed")
-    public void onKeyPressedHead(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+    public void onKeyPressedHead(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
         if (shouldNotModify()) return;
         afterPutInAnvilFirst = false;
         afterPutInAnvilSecond = false;
     }
 
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/widget/TextFieldWidget;isActive()Z"), method = "keyPressed")
-    private boolean onKeyPressedNameFieldIsActive(TextFieldWidget instance, int keyCode, int scanCode, int modifiers) {
+    private boolean onKeyPressedNameFieldIsActive(TextFieldWidget instance, KeyInput input) {
         if (shouldNotModify()) return instance.isActive();
 
-        return rprWidget.keyPressed(keyCode, scanCode, modifiers)
+        return rprWidget.keyPressed(input)
                 || rprWidget.searchField.isActive()
                 || instance.isActive();
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (shouldNotModify()) return super.mouseClicked(mouseX, mouseY, button);
+    public boolean mouseClicked(Click click, boolean doubled) {
+        if (shouldNotModify()) return super.mouseClicked(click, doubled);
         afterPutInAnvilFirst = false;
         afterPutInAnvilSecond = false;
-        if (opener.mouseClicked(mouseX, mouseY, button)) return true;
-        if (favoriteButton.mouseClicked(mouseX, mouseY, button)) return true;
-        if (ghostCraft.mouseClicked(mouseX, mouseY, button)) {
+        if (opener.mouseClicked(click, doubled)) return true;
+        if (favoriteButton.mouseClicked(click, doubled)) return true;
+        if (ghostCraft.mouseClicked(click, doubled)) {
             if (rprWidget.getActiveItemStack().isEmpty()) {
                 nameField.setText("");
                 if (rprWidget.getCurrentTab().forCraftItemOnly) {
@@ -141,8 +143,8 @@ public abstract class AnvilScreenMixin extends Screen implements RPRInteractable
                 }
             }
         }
-        if (rprWidget.mouseClicked(mouseX, mouseY, button)) return true;
-        return super.mouseClicked(mouseX, mouseY, button);
+        if (rprWidget.mouseClicked(click, doubled)) return true;
+        return super.mouseClicked(click, doubled);
     }
 
     @Inject(at = @At("HEAD"), method = "onSlotUpdate", cancellable = true)

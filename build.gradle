@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.11.+'
+	id 'fabric-loom' version '1.14.10'
 	id 'maven-publish'
 }
 
@@ -15,6 +15,7 @@ loom {
 
 	mixin {
 		defaultRefmapName = "${mod_id}-refmap.json"
+		useLegacyMixinAp = true
 	}
 }
 
@@ -87,7 +88,7 @@ java {
 
 jar {
 	from("LICENSE") {
-		rename { "${it}_${project.archivesBaseName}"}
+		rename { "${it}_${project.base.archivesName.get()}"}
 	}
 }
 
