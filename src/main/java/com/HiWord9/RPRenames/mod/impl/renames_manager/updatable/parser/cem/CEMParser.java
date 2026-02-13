@@ -7,10 +7,10 @@ import com.HiWord9.RPRenames.mod.impl.rename.CEMRename;
 import com.HiWord9.RPRenames.api.RenamesManager;
 import com.HiWord9.RPRenames.mod.impl.renames_manager.updatable.parser.Parser;
 import com.HiWord9.RPRenames.mod.util.ParserHelper;
+import com.HiWord9.RPRenames.mod.util.ResourceStackHelper;
 import net.minecraft.entity.EntityType;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.profiler.Profiler;
 
@@ -46,7 +46,7 @@ public class CEMParser implements Parser {
         }
 
         checked.clear();
-        for (Map.Entry<Identifier, Resource> entry : resourceManager.findResources(CEM_PATH,
+        for (var entry : ResourceStackHelper.findAllResources(resourceManager, CEM_PATH,
                 s -> {
                     String path = s.getPath();
                     try {
@@ -57,11 +57,11 @@ public class CEMParser implements Parser {
                         return false;
                     }
                 }
-        ).entrySet()) {
+        )) {
             try {
-                for (String jpmFileName : pullFieldListFromJsonInputStream(entry.getValue().getInputStream(), "model")) {
+                for (String jpmFileName : pullFieldListFromJsonInputStream(entry.resource().getInputStream(), "model")) {
                     if (jpmFileName == null || !jpmFileName.endsWith(".jpm")) continue;
-                    String path = entry.getKey().getPath();
+                    String path = entry.id().getPath();
                     parseTextureSourceFile(resourceManager, jpmFileName, path.substring(path.lastIndexOf("/") + 1, path.lastIndexOf(".")), RANDOM_ENTITY_PATH);
                 }
             } catch (Exception e) {
@@ -69,7 +69,7 @@ public class CEMParser implements Parser {
             }
         }
 
-        for (Map.Entry<Identifier, Resource> entry : resourceManager.findResources(CEM_PATH,
+        for (var entry : ResourceStackHelper.findAllResources(resourceManager, CEM_PATH,
                 s -> {
                     String path = s.getPath();
                     try {
@@ -80,12 +80,12 @@ public class CEMParser implements Parser {
                         return false;
                     }
                 }
-        ).entrySet()) {
+        )) {
             try {
                 Properties p = new Properties();
-                p.load(entry.getValue().getInputStream());
+                p.load(entry.resource().getInputStream());
                 var numbers = getModelNumsFromProp(p);
-                String path = entry.getKey().getPath();
+                String path = entry.id().getPath();
                 String pathInCem = path.substring(CEM_PATH.length() + 1, path.lastIndexOf("."));
                 for (String n : numbers) {
                     if (n.equals("1")) n = "";
@@ -114,55 +114,58 @@ public class CEMParser implements Parser {
 
     private void parseRawPropertyFile(ResourceManager resourceManager, String texturePath, String texture, EntityType<?> entityType) throws IOException {
         Identifier identifier = Identifier.of(Identifier.DEFAULT_NAMESPACE, texturePath + texture + PROP_EXTENSION);
-        Optional<Resource> optionalResource = resourceManager.getResource(identifier);
-        if (optionalResource.isEmpty()) {
+        var resources = ResourceStackHelper.getAllResources(resourceManager, identifier);
+        if (resources.isEmpty()) {
             identifier = Identifier.of(Identifier.DEFAULT_NAMESPACE, texturePath + getLastPathPart(texture) + PROP_EXTENSION);
-            optionalResource = resourceManager.getResource(identifier);
-            if (optionalResource.isEmpty()) return;
+            resources = ResourceStackHelper.getAllResources(resourceManager, identifier);
+            if (resources.isEmpty()) return;
         }
-        Resource resource = optionalResource.get();
+        for (Resource resource : resources) {
+            String packName = ParserHelper.validatePackName(resource.getPack().getId());
+            String path = ParserHelper.getFullPathFromIdentifier(packName, identifier);
+            if (checked.contains(path)) continue;
+            checked.add(path);
 
-        String packName = ParserHelper.validatePackName(resource.getPack().getId());
-        String path = ParserHelper.getFullPathFromIdentifier(packName, identifier);
-        if (checked.contains(path)) return;
-
-        propertiesToRenameMob(
-                ParserHelper.getPropFromResource(resource),
-                packName,
-                path,
-                entityType
-        );
+            propertiesToRenameMob(
+                    ParserHelper.getPropFromResource(resource),
+                    packName,
+                    path,
+                    entityType
+            );
+        }
     }
 
     private void parseTextureSourceFile(ResourceManager resourceManager, String fileWithTextureName, String fileName, String texturePath) throws IOException {
-        Optional<Resource> optionalResourceJpm = resourceManager.getResource(Identifier.of(Identifier.DEFAULT_NAMESPACE, CEM_PATH + "/" + fileWithTextureName));
-        if (optionalResourceJpm.isEmpty()) return;
-
-        Resource resourceJpm = optionalResourceJpm.get();
-        var textures = pullFieldListFromJsonInputStream(resourceJpm.getInputStream(), "texture");
-        if (textures.isEmpty()) return;
-
-        String textureName = prepareTexturePath(textures.getFirst());
-
-        Identifier propId = Identifier.of(Identifier.DEFAULT_NAMESPACE, texturePath + textureName + PROP_EXTENSION);
-        Optional<Resource> optionalResourceProp = resourceManager.getResource(propId);
-        if (optionalResourceProp.isEmpty()) return;
-
-        Resource resourceProp = optionalResourceProp.get();
-
-        String packName = ParserHelper.validatePackName(resourceProp.getPack().getId());
-        String path = ParserHelper.getFullPathFromIdentifier(packName, propId);
-        checked.add(path);
+        Identifier jpmId = Identifier.of(Identifier.DEFAULT_NAMESPACE, CEM_PATH + "/" + fileWithTextureName);
+        var resourcesJpm = ResourceStackHelper.getAllResources(resourceManager, jpmId);
+        if (resourcesJpm.isEmpty()) return;
 
         CEMModels.ModelData modelData = CEMModels.find(fileName);
         if (modelData == null) return;
 
-        propertiesToRenameMob(
-                ParserHelper.getPropFromResource(resourceProp),
-                packName,
-                path,
-                modelData.mob()
-        );
+        for (Resource resourceJpm : resourcesJpm) {
+            var textures = pullFieldListFromJsonInputStream(resourceJpm.getInputStream(), "texture");
+            if (textures.isEmpty()) continue;
+
+            String textureName = prepareTexturePath(textures.getFirst());
+            Identifier propId = Identifier.of(Identifier.DEFAULT_NAMESPACE, texturePath + textureName + PROP_EXTENSION);
+            var resourcesProp = ResourceStackHelper.getAllResources(resourceManager, propId);
+            if (resourcesProp.isEmpty()) continue;
+
+            for (Resource resourceProp : resourcesProp) {
+                String packName = ParserHelper.validatePackName(resourceProp.getPack().getId());
+                String path = ParserHelper.getFullPathFromIdentifier(packName, propId);
+                if (checked.contains(path)) continue;
+                checked.add(path);
+
+                propertiesToRenameMob(
+                        ParserHelper.getPropFromResource(resourceProp),
+                        packName,
+                        path,
+                        modelData.mob()
+                );
+            }
+        }
     }
 
     private void propertiesToRenameMob(Properties p, String packName, String path, EntityType<?> entityType) {
@@ -184,10 +187,11 @@ public class CEMParser implements Parser {
 
             Rename itemRename = null;
             var alreadyExist = renamesManager.getRenames(CEMRename.DEFAULT_MOB_ITEM);
-
-            var renameNameOnly = new Rename(Text.of(name), CEMRename.DEFAULT_MOB_ITEM);
             for (var r : alreadyExist) {
-                if (r.baseEquals(renameNameOnly)) {
+                if (r instanceof CEMRename cemRename
+                        && Objects.equals(name, cemRename.getName().getString())
+                        && Objects.equals(packName, cemRename.getPackName())
+                ) {
                     itemRename = r;
                     break;
                 }
@@ -208,6 +212,7 @@ public class CEMParser implements Parser {
                 if (r instanceof CEMRename cemRename
                         && Objects.equals(name, cemRename.getName().getString())
                         && Objects.equals(entityType, cemRename.getEntity())
+                        && Objects.equals(packName, cemRename.getPackName())
                 ) contained = true;
             }
             if (!contained) {

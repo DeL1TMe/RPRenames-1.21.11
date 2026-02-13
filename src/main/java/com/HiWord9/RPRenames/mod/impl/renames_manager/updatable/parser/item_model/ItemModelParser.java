@@ -8,6 +8,7 @@ import com.HiWord9.RPRenames.api.RenamesManager;
 import com.HiWord9.RPRenames.mod.impl.renames_manager.updatable.parser.item_model.condition.SelectCondition;
 import com.HiWord9.RPRenames.mod.util.Util;
 import com.HiWord9.RPRenames.mod.RPRenames;
+import com.HiWord9.RPRenames.mod.util.ResourceStackHelper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -105,13 +106,13 @@ public class ItemModelParser implements Parser {
     }
 
     private void parseRawItemModels(ResourceManager resourceManager, Map<Item, Set<List<Text>>> existingNamesByItem) {
-        for (var entry : resourceManager.findResources("items", id -> id.getPath().endsWith(".json")).entrySet()) {
-            var itemId = itemIdFromItemModelId(entry.getKey());
+        for (var entry : ResourceStackHelper.findAllResources(resourceManager, "items", id -> id.getPath().endsWith(".json"))) {
+            var itemId = itemIdFromItemModelId(entry.id());
             if (itemId == null) continue;
             var item = Util.itemFromId(itemId);
             if (item == Items.AIR) continue;
 
-            try (var reader = new InputStreamReader(entry.getValue().getInputStream(), StandardCharsets.UTF_8)) {
+            try (var reader = new InputStreamReader(entry.resource().getInputStream(), StandardCharsets.UTF_8)) {
                 JsonElement root = Util.GSON.fromJson(reader, JsonElement.class);
                 if (root == null || root.isJsonNull()) continue;
 
@@ -133,7 +134,7 @@ public class ItemModelParser implements Parser {
                     existingNames.add(names);
                 }
             } catch (Exception e) {
-                RPRenames.LOGGER.warn("Failed to parse item model json {}", entry.getKey(), e);
+                RPRenames.LOGGER.warn("Failed to parse item model json {}", entry.id(), e);
             }
         }
     }

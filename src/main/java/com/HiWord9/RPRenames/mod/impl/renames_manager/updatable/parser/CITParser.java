@@ -3,13 +3,13 @@ package com.HiWord9.RPRenames.mod.impl.renames_manager.updatable.parser;
 import com.HiWord9.RPRenames.mod.RPRenames;
 import com.HiWord9.RPRenames.mod.util.ParserHelper;
 import com.HiWord9.RPRenames.mod.util.PropertiesHelper;
+import com.HiWord9.RPRenames.mod.util.ResourceStackHelper;
 import com.HiWord9.RPRenames.api.RenamesManager;
 import com.HiWord9.RPRenames.api.rename.Rename;
 import com.HiWord9.RPRenames.mod.impl.rename.CITRename;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
-import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.profiler.Profiler;
@@ -28,13 +28,13 @@ public class CITParser implements Parser {
     public void parse(ResourceManager resourceManager, Profiler profiler) {
         profiler.push("rprenames:collecting_cit_renames");
         for (String root : ROOTS) {
-            for (Map.Entry<Identifier, Resource> entry : resourceManager.findResources(root + "/cit", s -> s.getPath().endsWith(".properties")).entrySet()) {
+            for (var entry : ResourceStackHelper.findAllResources(resourceManager, root + "/cit", s -> s.getPath().endsWith(".properties"))) {
                 try {
-                    String packName = ParserHelper.validatePackName(entry.getValue().getPack().getId());
+                    String packName = ParserHelper.validatePackName(entry.resource().getPack().getId());
                     propertiesToRename(
-                            ParserHelper.getPropFromResource(entry.getValue()),
+                            ParserHelper.getPropFromResource(entry.resource()),
                             packName,
-                            ParserHelper.getFullPathFromIdentifier(packName, entry.getKey())
+                            ParserHelper.getFullPathFromIdentifier(packName, entry.id())
                     );
                 } catch (Exception e) {
                     RPRenames.LOGGER.error("Something went wrong while parsing CIT Renames", e);
@@ -122,6 +122,7 @@ public class CITParser implements Parser {
                         && Objects.equals(citRename.getDamage(), rename.getDamage())
                         && Objects.equals(citRename.getEnchantment(), rename.getEnchantment())
                         && Objects.equals(citRename.getEnchantmentLevel(), rename.getEnchantmentLevel())
+                        && Objects.equals(citRename.getPackName(), rename.getPackName())
                 ) contained = true;
             }
             if (!contained) {
