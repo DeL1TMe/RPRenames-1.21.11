@@ -60,10 +60,10 @@ public class ItemModelParser implements Parser {
             );
 
             for (var item : data.items) {
-                existingNamesByItem
-                        .computeIfAbsent(item, ignored -> new HashSet<>())
-                        .add(name);
-                renamesManager.addRename(item, rename);
+                var existingNames = getOrLoadExistingNames(item, existingNamesByItem);
+                if (existingNames.add(name)) {
+                    renamesManager.addRename(item, rename);
+                }
             }
         });
 
@@ -120,7 +120,7 @@ public class ItemModelParser implements Parser {
                 collectCustomNameLists(root, nameLists);
                 if (nameLists.isEmpty()) continue;
 
-                var existingNames = existingNamesByItem.computeIfAbsent(item, ignored -> new HashSet<>());
+                var existingNames = getOrLoadExistingNames(item, existingNamesByItem);
                 for (var names : nameLists) {
                     if (names == null || names.isEmpty()) continue;
                     if (existingNames.contains(names)) continue;
@@ -213,5 +213,17 @@ public class ItemModelParser implements Parser {
     private static @Nullable String getStringOrNull(JsonObject obj, String key) {
         var el = obj.get(key);
         return el != null && el.isJsonPrimitive() ? el.getAsString() : null;
+    }
+
+    private Set<List<Text>> getOrLoadExistingNames(Item item, Map<Item, Set<List<Text>>> existingNamesByItem) {
+        return existingNamesByItem.computeIfAbsent(item, ignored -> {
+            var names = new HashSet<List<Text>>();
+            for (var rename : renamesManager.getRenames(item)) {
+                if (rename instanceof ItemModelRename itemModelRename) {
+                    names.add(itemModelRename.getNames());
+                }
+            }
+            return names;
+        });
     }
 }

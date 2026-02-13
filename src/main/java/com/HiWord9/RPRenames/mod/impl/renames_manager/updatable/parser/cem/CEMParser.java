@@ -26,7 +26,9 @@ public class CEMParser implements Parser {
 
     private static final String PROP_EXTENSION = ".properties";
 
-    private final ArrayList<String> checked = new ArrayList<>();
+    private final Set<String> checked = new HashSet<>();
+    private final Set<CemEntityKey> seenEntities = new HashSet<>();
+    private final Map<CemItemKey, Rename> itemRenameByKey = new HashMap<>();
 
     public RenamesManager<Rename> renamesManager;
 
@@ -46,6 +48,8 @@ public class CEMParser implements Parser {
         }
 
         checked.clear();
+        seenEntities.clear();
+        itemRenameByKey.clear();
         for (var entry : ResourceStackHelper.findAllResources(resourceManager, CEM_PATH,
                 s -> {
                     String path = s.getPath();
@@ -169,7 +173,7 @@ public class CEMParser implements Parser {
     }
 
     private void propertiesToRenameMob(Properties p, String packName, String path, EntityType<?> entityType) {
-        ArrayList<String> skins = new ArrayList<>();
+        Set<String> skins = new HashSet<>();
         for (String s : p.stringPropertyNames()) {
             if (!s.startsWith("name.")) continue;
 
@@ -185,15 +189,17 @@ public class CEMParser implements Parser {
             String namePattern = findPropName(p, nameIndex);
             path = path.replaceAll("\\\\", "/");
 
-            Rename itemRename = null;
-            var alreadyExist = renamesManager.getRenames(CEMRename.DEFAULT_MOB_ITEM);
-            for (var r : alreadyExist) {
-                if (r instanceof CEMRename cemRename
-                        && Objects.equals(name, cemRename.getName().getString())
-                        && Objects.equals(packName, cemRename.getPackName())
-                ) {
-                    itemRename = r;
-                    break;
+            Rename itemRename = itemRenameByKey.get(new CemItemKey(name, packName));
+            if (itemRename == null) {
+                var existing = renamesManager.getRenames(CEMRename.DEFAULT_MOB_ITEM);
+                for (var r : existing) {
+                    if (r instanceof CEMRename cemRename
+                            && Objects.equals(name, cemRename.getName().getString())
+                            && Objects.equals(packName, cemRename.getPackName())
+                    ) {
+                        itemRename = r;
+                        break;
+                    }
                 }
             }
 
@@ -207,19 +213,12 @@ public class CEMParser implements Parser {
                     itemRename
             );
 
-            boolean contained = false;
-            for (Rename r : alreadyExist) {
-                if (r instanceof CEMRename cemRename
-                        && Objects.equals(name, cemRename.getName().getString())
-                        && Objects.equals(entityType, cemRename.getEntity())
-                        && Objects.equals(packName, cemRename.getPackName())
-                ) contained = true;
-            }
-            if (!contained) {
+            if (seenEntities.add(new CemEntityKey(name, entityType, packName))) {
                 if (itemRename != null) {
                     renamesManager.removeRename(CEMRename.DEFAULT_MOB_ITEM, itemRename);
                 }
                 renamesManager.addRename(rename);
+                itemRenameByKey.put(new CemItemKey(name, packName), rename);
             }
         }
     }
@@ -237,17 +236,17 @@ public class CEMParser implements Parser {
 
 
     private static List<String> getModelNumsFromProp(Properties models) {
-        ArrayList<String> numbers = new ArrayList<>();
+        Set<String> numbers = new LinkedHashSet<>();
         try {
             for (String p : models.stringPropertyNames()) {
                 if (!p.startsWith("models.")) continue;
                 String num = models.getProperty(p);
-                if (!numbers.contains(num)) numbers.addAll(List.of(num.split(" ")));
+                numbers.addAll(List.of(num.split(" ")));
             }
         } catch (Exception e) {
             RPRenames.LOGGER.error("Something went wrong while parsing CEM Renames", e);
         }
-        return numbers;
+        return new ArrayList<>(numbers);
     }
 
     private static List<String> pullFieldListFromJsonInputStream(InputStream inputStream, String field) {
@@ -304,4 +303,8 @@ public class CEMParser implements Parser {
         if (ignoreSkip) return false;
         return config().ignoreCEM;
     }
+
+    private record CemItemKey(String name, String packName) {}
+
+    private record CemEntityKey(String name, EntityType<?> entityType, String packName) {}
 }

@@ -9,9 +9,7 @@ import net.minecraft.item.Item;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -21,7 +19,7 @@ public class RenamesSearchEngine {
     }
 
     public static List<Rename> search(List<Rename> list, String match, FavoritesManager favoritesManager) {
-        List<Rename> resultList = new ArrayList<>();
+        LinkedHashSet<Rename> resultSet = new LinkedHashSet<>();
         if (match.startsWith("#")) {
             String matchTag = match.substring(1);
             String upMatchTag = up(matchTag);
@@ -34,19 +32,19 @@ public class RenamesSearchEngine {
             String tagUp = beforeColon(upMatchTag);
 
             switch (tagUp) {
-                case "REGEX", "IREGEX" -> handleRegex(list, matchTag, resultList);
-                case "PACK", "PACKNAME" -> handlePackName(list, matchTag, resultList);
-                case "ITEM" -> handleItem(list, matchTag, resultList);
-                case "STACKSIZE", "STACK", "SIZE" -> handleStackSize(list, matchTag, resultList);
-                case "DAMAGE" -> handleDamage(list, matchTag, resultList);
-                case "ENCH", "ENCHANT", "ENCHANTMENT" -> handleEnchantment(list, matchTag, resultList);
-                case "FAV", "FAVORITE" -> handleFavorite(list, favoritesManager, resultList);
+                case "REGEX", "IREGEX" -> handleRegex(list, matchTag, resultSet);
+                case "PACK", "PACKNAME" -> handlePackName(list, matchTag, resultSet);
+                case "ITEM" -> handleItem(list, matchTag, resultSet);
+                case "STACKSIZE", "STACK", "SIZE" -> handleStackSize(list, matchTag, resultSet);
+                case "DAMAGE" -> handleDamage(list, matchTag, resultSet);
+                case "ENCH", "ENCHANT", "ENCHANTMENT" -> handleEnchantment(list, matchTag, resultSet);
+                case "FAV", "FAVORITE" -> handleFavorite(list, favoritesManager, resultSet);
             }
 
             if (match.substring(1).contains(" ") && !upMatchTag.contains("REGEX:") && !upMatchTag.contains("IREGEX:")) {
-                resultList = search(resultList, match.substring(match.indexOf(" ") + 1), favoritesManager);
+                return search(new ArrayList<>(resultSet), match.substring(match.indexOf(" ") + 1), favoritesManager);
             } else if (match.substring(1).contains(" #")) {
-                resultList = search(resultList, match.substring(match.indexOf(" #") + 1), favoritesManager);
+                return search(new ArrayList<>(resultSet), match.substring(match.indexOf(" #") + 1), favoritesManager);
             }
         } else {
             if (match.startsWith("\\#")) {
@@ -55,16 +53,15 @@ public class RenamesSearchEngine {
             for (Rename r : list) {
                 for(Text name : r.getNames()) {
                     if (up(name.getString()).contains(up(match))) {
-                        if(resultList.contains(r)) continue;
-                        resultList.add(r);
+                        resultSet.add(r);
                     }
                 }
             }
         }
-        return resultList;
+        return new ArrayList<>(resultSet);
     }
 
-    private static void handleRegex(List<Rename> renames, String regexTag, List<Rename> resultList) {
+    private static void handleRegex(List<Rename> renames, String regexTag, Set<Rename> resultList) {
         boolean caseInsensitive = up(regexTag).startsWith("I");
         String regexText = afterColon(regexTag);
 
@@ -81,7 +78,7 @@ public class RenamesSearchEngine {
         } catch (PatternSyntaxException ignored) {} // invalid pattern -> ignore
     }
 
-    private static void handlePackName(List<Rename> renames, String packNameTag, List<Rename> resultList) {
+    private static void handlePackName(List<Rename> renames, String packNameTag, Set<Rename> resultList) {
         String packNameUp = up(afterColon(packNameTag));
 
         for (Rename r : renames) {
@@ -95,7 +92,7 @@ public class RenamesSearchEngine {
         }
     }
 
-    private static void handleItem(List<Rename> renames, String itemTag, List<Rename> resultList) {
+    private static void handleItem(List<Rename> renames, String itemTag, Set<Rename> resultList) {
         String itemNameUp = up(afterColon(itemTag));
 
         for (Rename r : renames) {
@@ -108,7 +105,7 @@ public class RenamesSearchEngine {
         }
     }
 
-    private static void handleStackSize(List<Rename> renames, String stackSizeTag, List<Rename> resultList) {
+    private static void handleStackSize(List<Rename> renames, String stackSizeTag, Set<Rename> resultList) {
         String stackSize = afterColon(stackSizeTag);
         if (!stackSize.matches("[0-9]{1,9}")) return;
 
@@ -124,7 +121,7 @@ public class RenamesSearchEngine {
         }
     }
 
-    private static void handleDamage(List<Rename> renames, String damageTag, List<Rename> resultList) {
+    private static void handleDamage(List<Rename> renames, String damageTag, Set<Rename> resultList) {
         String damage = afterColon(damageTag);
         if (!damage.matches("[0-9]{1,9}")) return;
 
@@ -142,7 +139,7 @@ public class RenamesSearchEngine {
         }
     }
 
-    private static void handleEnchantment(List<Rename> renames, String enchantmentTag, List<Rename> resultList) {
+    private static void handleEnchantment(List<Rename> renames, String enchantmentTag, Set<Rename> resultList) {
         String enchantUp = up(afterColon(enchantmentTag));
 
         for (Rename r : renames) {
@@ -159,7 +156,7 @@ public class RenamesSearchEngine {
         }
     }
 
-    private static void handleFavorite(List<Rename> renames, FavoritesManager favoritesManager, List<Rename> resultList) {
+    private static void handleFavorite(List<Rename> renames, FavoritesManager favoritesManager, Set<Rename> resultList) {
         for (Rename r : renames) {
             if (favoritesManager.isFavoriteAny(r.getItems(), r.getName().getString())) {
                 resultList.add(r);

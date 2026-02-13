@@ -139,6 +139,18 @@ public class CITRename extends ResourcePackRename implements HasProperties, HasN
             if (!percent) return damage;
             return PropertiesHelper.parseDamagePercent(damage, item);
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (!(obj instanceof Damage other)) return false;
+            return damage == other.damage && percent == other.percent;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(damage, percent);
+        }
     }
 
     @Override

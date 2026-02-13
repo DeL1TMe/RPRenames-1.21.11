@@ -19,6 +19,22 @@ public class ParserHelper {
     }
 
     public static String validatePackName(String packName) {
-        return packName.startsWith("file/") ? packName.substring(5) : packName;
+        if (packName == null || packName.isBlank()) {
+            return "unknown";
+        }
+
+        String normalized = packName;
+        if (normalized.startsWith("file/")) {
+            normalized = normalized.substring(5);
+        }
+
+        // Some loaders/mods expose virtual pack layers like "pack.zip#2".
+        // We collapse layer suffixes so one physical pack does not generate duplicates.
+        int layerSeparator = normalized.indexOf('#');
+        if (layerSeparator > 0) {
+            normalized = normalized.substring(0, layerSeparator);
+        }
+
+        return normalized;
     }
 }

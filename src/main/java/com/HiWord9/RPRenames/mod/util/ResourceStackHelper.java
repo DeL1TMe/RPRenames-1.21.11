@@ -18,33 +18,22 @@ public class ResourceStackHelper {
             Predicate<Identifier> allowedPathPredicate
     ) {
         var keyed = new LinkedHashMap<String, ResourceEntry>();
+        boolean loadedFromPacks = false;
+
+        try {
+            loadedFromPacks = collectFromResourcePacks(resourceManager, startingPath, allowedPathPredicate, keyed);
+        } catch (Exception e) {
+            RPRenames.LOGGER.warn("Failed to enumerate resources from resource packs for {}", startingPath, e);
+        }
+
+        if (loadedFromPacks) {
+            return new ArrayList<>(keyed.values());
+        }
 
         try {
             flattenResourcesMap(resourceManager.findAllResources(startingPath, allowedPathPredicate), keyed);
         } catch (Exception e) {
             RPRenames.LOGGER.warn("Failed to call findAllResources for {}", startingPath, e);
-        }
-
-        try {
-            for (Map.Entry<Identifier, Resource> entry : resourceManager.findResources(startingPath, allowedPathPredicate).entrySet()) {
-                var id = entry.getKey();
-                var resources = getAllResources(resourceManager, id);
-                if (resources.isEmpty()) {
-                    putEntry(keyed, new ResourceEntry(id, entry.getValue()));
-                    continue;
-                }
-                for (Resource resource : resources) {
-                    putEntry(keyed, new ResourceEntry(id, resource));
-                }
-            }
-        } catch (Exception e) {
-            RPRenames.LOGGER.warn("Failed to enumerate resources for {}", startingPath, e);
-        }
-
-        try {
-            collectFromResourcePacks(resourceManager, startingPath, allowedPathPredicate, keyed);
-        } catch (Exception e) {
-            RPRenames.LOGGER.warn("Failed to enumerate resources from resource packs for {}", startingPath, e);
         }
 
         return new ArrayList<>(keyed.values());
@@ -54,12 +43,13 @@ public class ResourceStackHelper {
         return resourceManager.getAllResources(identifier);
     }
 
-    private static void collectFromResourcePacks(
+    private static boolean collectFromResourcePacks(
             ResourceManager resourceManager,
             String startingPath,
             Predicate<Identifier> allowedPathPredicate,
             Map<String, ResourceEntry> out
     ) {
+        int before = out.size();
         resourceManager.streamResourcePacks().forEach(pack -> {
             Set<String> namespaces;
             try {
@@ -81,6 +71,7 @@ public class ResourceStackHelper {
                 );
             }
         });
+        return out.size() > before;
     }
 
     private static void flattenResourcesMap(Map<?, ?> map, Map<String, ResourceEntry> out) {
@@ -103,7 +94,8 @@ public class ResourceStackHelper {
     }
 
     private static void putEntry(Map<String, ResourceEntry> out, ResourceEntry entry) {
-        String key = entry.id().toString() + "\n" + entry.resource().getPackId();
+        String normalizedPackId = ParserHelper.validatePackName(entry.resource().getPackId());
+        String key = entry.id().toString() + "\n" + normalizedPackId;
         out.putIfAbsent(key, entry);
     }
 }

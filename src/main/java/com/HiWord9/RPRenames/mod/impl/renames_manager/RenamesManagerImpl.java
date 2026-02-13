@@ -9,13 +9,20 @@ import java.util.stream.Collectors;
 
 public class RenamesManagerImpl<R extends Rename> implements RenamesManager<R> {
     protected final Map<Item, List<R>> renames = new HashMap<>();
+    private volatile List<R> allRenamesCache = null;
 
     public List<R> getAllRenames() {
-        return renames
-                .values().stream()
+        var cache = allRenamesCache;
+        if (cache != null) {
+            return cache;
+        }
+
+        cache = renames.values().stream()
                 .flatMap(Collection::stream)
                 .distinct()
-                .collect(Collectors.toList());
+                .collect(Collectors.toUnmodifiableList());
+        allRenamesCache = cache;
+        return cache;
     }
 
     public List<R> getRenames(Item item) {
@@ -24,16 +31,27 @@ public class RenamesManagerImpl<R extends Rename> implements RenamesManager<R> {
     }
 
     public boolean addRename(Item item, R rename) {
-        return renames.computeIfAbsent(item, i -> new ArrayList<>()).add(rename);
+        boolean added = renames.computeIfAbsent(item, i -> new ArrayList<>()).add(rename);
+        if (added) {
+            allRenamesCache = null;
+        }
+        return added;
     }
 
     public boolean removeRename(Item item, R rename) {
         var l = renames.get(item);
-        if (l != null) return l.remove(rename);
-        else return false;
+        if (l != null) {
+            boolean removed = l.remove(rename);
+            if (removed) {
+                allRenamesCache = null;
+            }
+            return removed;
+        }
+        return false;
     }
 
     public void clearRenames() {
         renames.clear();
+        allRenamesCache = null;
     }
 }

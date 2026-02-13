@@ -18,6 +18,7 @@ import java.util.*;
 
 public class CITParser implements Parser {
     private static final List<String> ROOTS = List.of("mcpatcher", "optifine", "citresewn");
+    private final Map<Item, Set<CitKey>> seenByItem = new HashMap<>();
 
     public RenamesManager<? super CITRename> renamesManager;
 
@@ -27,6 +28,7 @@ public class CITParser implements Parser {
 
     public void parse(ResourceManager resourceManager, Profiler profiler) {
         profiler.push("rprenames:collecting_cit_renames");
+        seenByItem.clear();
         for (String root : ROOTS) {
             for (var entry : ResourceStackHelper.findAllResources(resourceManager, root + "/cit", s -> s.getPath().endsWith(".properties"))) {
                 try {
@@ -112,20 +114,11 @@ public class CITParser implements Parser {
                 description,
                 items.toArray(new Item[]{})
         );
+        CitKey key = CitKey.of(rename);
 
         for (Item item : items) {
-            boolean contained = false;
-            for (Rename r : renamesManager.getRenames(item)) {
-                if (r instanceof CITRename citRename
-                        && Objects.equals(citRename.getName(), rename.getName())
-                        && Objects.equals(citRename.getStackSize(), rename.getStackSize())
-                        && Objects.equals(citRename.getDamage(), rename.getDamage())
-                        && Objects.equals(citRename.getEnchantment(), rename.getEnchantment())
-                        && Objects.equals(citRename.getEnchantmentLevel(), rename.getEnchantmentLevel())
-                        && Objects.equals(citRename.getPackName(), rename.getPackName())
-                ) contained = true;
-            }
-            if (!contained) {
+            var seen = seenByItem.computeIfAbsent(item, ignored -> new HashSet<>());
+            if (seen.add(key)) {
                 renamesManager.addRename(item, rename);
             }
         }
@@ -160,5 +153,25 @@ public class CITParser implements Parser {
 
     private static List<Item> itemsFromMatchItems(String matchItems) {
         return itemsFromMatchList(splitMatchItems(matchItems));
+    }
+
+    private record CitKey(
+            String name,
+            Integer stackSize,
+            CITRename.Damage damage,
+            Identifier enchantment,
+            Integer enchantmentLevel,
+            String packName
+    ) {
+        private static CitKey of(CITRename rename) {
+            return new CitKey(
+                    rename.getName().getString(),
+                    rename.getStackSize(),
+                    rename.getDamage(),
+                    rename.getEnchantment(),
+                    rename.getEnchantmentLevel(),
+                    rename.getPackName()
+            );
+        }
     }
 }
